@@ -1,5 +1,6 @@
 import type { Budget, Label, Region } from "./catalog";
 import { DOCUMENT_UNIVERSITIES } from "./document-universities";
+import { EXPANDED_UNIVERSITIES } from "./expanded-universities";
 export type EducationType = "bac" | "gce" | "ossd";
 
 export type Instruction = "en" | "fr" | "both";
@@ -2384,6 +2385,7 @@ const CORE_UNIVERSITIES: University[] = [
 const coreNames = new Set(CORE_UNIVERSITIES.map((u) => u.name.trim().toLocaleLowerCase()));
 export const UNIVERSITIES: University[] = [
   ...CORE_UNIVERSITIES,
+  ...EXPANDED_UNIVERSITIES,
   ...DOCUMENT_UNIVERSITIES.filter((u) => !coreNames.has(u.name.trim().toLocaleLowerCase())),
 ];
 
@@ -2405,6 +2407,7 @@ export interface MatchQuery {
   budget: Budget;
   /** Language track of the student. */
   track: "fr" | "en";
+  educationType?: EducationType | undefined;
 }
 
 export function matchUniversities(q: MatchQuery) {
@@ -2412,6 +2415,8 @@ export function matchUniversities(q: MatchQuery) {
     if (u.region !== q.region) return false;
     if (q.specialtyId && !u.specialties.includes(q.specialtyId)) return false;
     if (u.instruction !== "both" && u.instruction !== q.track) return false;
+    if (q.educationType && u.educationTypes && !u.educationTypes.includes(q.educationType))
+      return false;
     return budgetFor(u, q.specialtyId) === q.budget;
   });
 }
@@ -2421,6 +2426,12 @@ export function nearMatches(q: MatchQuery) {
   return UNIVERSITIES.filter((u) => {
     if (u.region !== q.region) return false;
     if (u.instruction !== "both" && u.instruction !== q.track) return false;
-    return !q.specialtyId || !u.specialties.includes(q.specialtyId) || budgetFor(u, q.specialtyId) !== q.budget;
+    if (q.educationType && u.educationTypes && !u.educationTypes.includes(q.educationType))
+      return false;
+    return (
+      !q.specialtyId ||
+      !u.specialties.includes(q.specialtyId) ||
+      budgetFor(u, q.specialtyId) !== q.budget
+    );
   });
 }

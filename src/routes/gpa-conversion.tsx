@@ -4,17 +4,32 @@ import { PageShell } from "@/components/site-chrome";
 import { useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/gpa-conversion")({ component: GpaConversionPage });
-type Certificate = "gce" | "bac" | "ossd" | "ibdp" | "cambridge";
+type Certificate = "gce-al" | "gce-ol" | "bac" | "probatoire" | "ossd" | "ibdp" | "cambridge";
 type Subject = { name: string; grade: string };
 const labels: Record<Certificate, string> = {
-  gce: "GCE A'Level",
+  "gce-al": "Cameroon GCE Advanced Level",
+  "gce-ol": "Cameroon GCE Ordinary Level",
   bac: "Baccalauréat",
+  probatoire: "Probatoire",
   ossd: "OSSD",
   ibdp: "IB Diploma",
   cambridge: "Cambridge International",
 };
+const certificateGuidance: Record<Certificate, string> = {
+  "gce-al":
+    "Preserve the official GCE A-Level grade (A, B, C, D, E, O or F). The 4.0-scale result is an indicative comparison, not an official conversion.",
+  "gce-ol":
+    "Preserve the official GCE O-Level grade. Use the receiving institution's published subject and grade rules.",
+  bac: "Enter each subject mark from 0 to 20. The official result and distinction remain more important than a third-party GPA estimate.",
+  probatoire:
+    "Enter each mark from 0 to 20. The original Probatoire result remains visible beside all reference comparisons.",
+  ossd: "Enter the percentage shown on your transcript. OSSD admission is normally assessed with Grade 12 university-preparation courses.",
+  ibdp: "Enter the total IB Diploma points from 0 to 45, or select subjects for an indicative comparison.",
+  cambridge:
+    "Use Cambridge International A-Level grades (A* to U). Check whether the institution treats Cambridge separately from GCE.",
+};
 const series: Record<Certificate, Record<string, string[]>> = {
-  gce: {
+  "gce-al": {
     Science: [
       "Mathematics",
       "Further Mathematics",
@@ -22,6 +37,10 @@ const series: Record<Certificate, Record<string, string[]>> = {
       "Chemistry",
       "Biology",
       "Computer Science",
+      "ICT",
+      "Geology",
+      "Philosophy",
+      "Food Science",
       "Geography",
     ],
     Arts: [
@@ -31,14 +50,24 @@ const series: Record<Certificate, Record<string, string[]>> = {
       "French",
       "Economics",
       "Religious Studies",
+      "Geology",
+      "Computer Science",
+      "ICT",
+      "Philosophy",
+      "Food Science",
     ],
     Commercial: [
       "Economics",
       "Accounting",
       "Business",
+      "Commerce",
+      "Marketing",
       "Mathematics",
       "Computer Science",
+      "ICT",
       "Geography",
+      "English Language",
+      "French",
     ],
     "Arts & Commercial": [
       "English Literature",
@@ -49,11 +78,35 @@ const series: Record<Certificate, Record<string, string[]>> = {
       "French",
     ],
   },
+  "gce-ol": {
+    General: [
+      "English Language",
+      "Mathematics",
+      "French",
+      "Physics",
+      "Chemistry",
+      "Biology",
+      "History",
+      "Geography",
+    ],
+  },
   bac: {
     C: ["Mathematics", "Physics", "Chemistry", "Computer Science", "French", "English"],
     D: ["Mathematics", "Biology", "Chemistry", "Physics", "French", "English"],
     A: ["French", "English", "Philosophy", "History", "Geography", "Mathematics"],
     G: ["Economics", "Accounting", "Business", "Mathematics", "French", "English"],
+  },
+  probatoire: {
+    General: [
+      "French",
+      "English",
+      "Mathematics",
+      "Physics",
+      "Chemistry",
+      "Biology",
+      "History",
+      "Geography",
+    ],
   },
   ossd: {
     "University Preparation": [
@@ -103,7 +156,8 @@ const series: Record<Certificate, Record<string, string[]>> = {
 };
 function points(certificate: Certificate, grade: string) {
   const value = grade.trim().toUpperCase();
-  if (certificate === "bac") return Math.max(0, Math.min(20, Number(value) || 0)) / 5;
+  if (certificate === "bac" || certificate === "probatoire")
+    return Math.max(0, Math.min(20, Number(value) || 0)) / 5;
   if (certificate === "ossd") {
     const score = Number(value) || 0;
     return score >= 90
@@ -129,12 +183,16 @@ function points(certificate: Certificate, grade: string) {
                         : 0;
   }
   if (certificate === "ibdp") return (Math.max(0, Math.min(45, Number(value) || 0)) / 45) * 4;
-  return ({ "A*": 4, A: 4, B: 3, C: 2, D: 1, E: 0.5, U: 0 } as Record<string, number>)[value] ?? 0;
+  return (
+    ({ "A*": 4, A: 4, B: 3, C: 2, D: 1, E: 0.5, O: 0.5, F: 0, U: 0 } as Record<string, number>)[
+      value
+    ] ?? 0
+  );
 }
 function result(certificate: Certificate, grade: string) {
   const us = points(certificate, grade);
   const percentage =
-    certificate === "bac"
+    certificate === "bac" || certificate === "probatoire"
       ? us * 5
       : certificate === "ibdp"
         ? (us / 4) * 45
@@ -190,8 +248,8 @@ function result(certificate: Certificate, grade: string) {
 }
 function GpaConversionPage() {
   const { t } = useI18n();
-  const [certificate, setCertificate] = useState<Certificate>("gce");
-  const [track, setTrack] = useState<string>(Object.keys(series.gce)[0] ?? "Science");
+  const [certificate, setCertificate] = useState<Certificate>("gce-al");
+  const [track, setTrack] = useState<string>(Object.keys(series["gce-al"])[0] ?? "Science");
   const [selected, setSelected] = useState<Subject[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const available = series[certificate][track] ?? [];
@@ -235,6 +293,33 @@ function GpaConversionPage() {
           enter each grade or mark. The available subjects are automatically adapted to your
           certificate and series.
         </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {[
+            [
+              "1. Select your award",
+              "Choose BAC, GCE A-Level, OSSD, IB Diploma or Cambridge International.",
+            ],
+            [
+              "2. Match your subjects",
+              "Pick the subjects shown on your official transcript. Subject prerequisites still apply.",
+            ],
+            [
+              "3. Compare carefully",
+              "Use the result to plan applications; the receiving university or credential agency makes the final decision.",
+            ],
+          ].map(([title, body]) => (
+            <article key={title} className="rounded-2xl border border-border bg-card p-4">
+              <h2 className="font-display font-semibold text-foreground">{title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-6 rounded-xl border-2 border-secondary/40 bg-secondary/5 p-4 text-sm leading-relaxed text-foreground">
+          <strong>Important:</strong> International grade and GPA conversions vary by country,
+          institution, qualification and admission policy. These are reference conversions, not
+          official credential evaluations. Always verify requirements with the receiving
+          institution.
+        </p>
         <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_2fr]">
           <form
             onSubmit={(event) => {
@@ -250,15 +335,16 @@ function GpaConversionPage() {
                 onChange={(event) => changeCertificate(event.target.value as Certificate)}
                 className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2"
               >
-                {Object.entries(labels)
-                  .filter(([value]) => value !== "ibdp" && value !== "cambridge")
-                  .map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
+                {Object.entries(labels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </label>
+            <p className="mt-4 rounded-xl bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground">
+              {certificateGuidance[certificate]}
+            </p>
             <label className="mt-4 block text-sm font-medium">
               Series / pathway
               <select
@@ -319,7 +405,11 @@ function GpaConversionPage() {
                             ? "a percentage from 0 to 100"
                             : certificate === "ibdp"
                               ? "IB points from 0 to 45"
-                              : "A*, A, B, C, D or E"}
+                              : certificate === "gce-al" ||
+                                  certificate === "gce-ol" ||
+                                  certificate === "cambridge"
+                                ? "A*, A, B, C, D, E, O or F"
+                                : "A*, A, B, C, D or E"}
                       </span>
                     </span>
                     <input
@@ -338,15 +428,34 @@ function GpaConversionPage() {
             )}
             {submitted && rows.length ? (
               <>
+                <div className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-secondary">
+                    Original Cameroon result
+                  </p>
+                  <p className="mt-1 text-lg font-semibold">
+                    {rows.map((row) => `${row.name}: ${row.grade}`).join(" · ")}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Original grades are preserved. The percentage shown in the table is only an
+                    indicative calculation used to derive the comparison values.
+                  </p>
+                </div>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <Result label="Overall US GPA" value={`${average.toFixed(2)} / 4.00`} />
+                  <Result
+                    label={
+                      certificate === "gce-al" || certificate === "gce-ol"
+                        ? "Indicative US GPA (4.0 scale)"
+                        : "Overall US GPA"
+                    }
+                    value={`${average.toFixed(2)} / 4.00`}
+                  />
                   <Result
                     label="Average Canadian result"
                     value={
                       result(
                         certificate,
                         String(
-                          rows.reduce((sum, row) => sum + row.conversion.percentage, 0) /
+                          rows.reduce((sum, row) => sum + (row.conversion.percentage ?? 0), 0) /
                             rows.length,
                         ),
                       ).canada
@@ -360,6 +469,24 @@ function GpaConversionPage() {
                         : average >= 3
                           ? "Upper second (2:1)"
                           : "Lower classification"
+                    }
+                  />
+                  <Result
+                    label="Estimated German grade"
+                    value={`${(
+                      rows.reduce((sum, row) => sum + (row.conversion.german ?? 0), 0) / rows.length
+                    ).toFixed(2)} / 5`}
+                  />
+                  <Result
+                    label="ECTS comparison"
+                    value={
+                      result(
+                        certificate,
+                        String(
+                          rows.reduce((sum, row) => sum + (row.conversion.percentage ?? 0), 0) /
+                            rows.length,
+                        ),
+                      ).ects
                     }
                   />
                 </div>
@@ -381,13 +508,20 @@ function GpaConversionPage() {
                           <td className="p-3 font-medium">
                             {row.name}
                             <span className="block text-xs text-muted-foreground">
-                              {row.grade} · {row.conversion.percentage.toFixed(1)}%
+                              {row.grade} ·{" "}
+                              {row.conversion.percentage === null
+                                ? "Original grade preserved"
+                                : `${row.conversion.percentage.toFixed(1)}% normalized`}
                             </span>
                           </td>
                           <td className="p-3">{row.conversion.us.toFixed(2)}</td>
                           <td className="p-3">{row.conversion.canada}</td>
                           <td className="p-3">{row.conversion.uk}</td>
-                          <td className="p-3">{row.conversion.german.toFixed(2)} / 5</td>
+                          <td className="p-3">
+                            {row.conversion.german === null
+                              ? "—"
+                              : `${row.conversion.german.toFixed(2)} / 5`}
+                          </td>
                           <td className="p-3">{row.conversion.ects}</td>
                         </tr>
                       ))}
@@ -397,7 +531,10 @@ function GpaConversionPage() {
               </>
             ) : (
               <p className="mt-6 text-sm text-muted-foreground">
-                Enter grades and click convert to see individual and total conversions.
+                Enter grades and click convert to see individual and total conversions. These are
+                indicative comparisons, not official admission decisions; each university may use
+                its own credential evaluation, subject prerequisites and document-verification
+                process.
               </p>
             )}
           </div>

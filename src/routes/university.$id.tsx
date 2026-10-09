@@ -83,18 +83,21 @@ function visaLocation(countryCode: string, country: string) {
     GB: "From Cameroon: complete the Student visa application on GOV.UK, pay online, then book biometrics at the UK visa application centre shown in the application.",
     US: "From Cameroon: complete DS-160, pay the SEVIS and visa fees, and attend the F-1 interview at the U.S. Embassy in Yaoundé.",
   };
-  return locations[countryCode] ?? `From Cameroon: use the official ${country} immigration portal, then attend the destination country's embassy or authorised visa centre in Yaoundé; confirm the exact centre before paying.`;
+  return (
+    locations[countryCode] ??
+    `From Cameroon: use the official ${country} immigration portal, then attend the destination country's embassy or authorised visa centre in Yaoundé; confirm the exact centre before paying.`
+  );
 }
 
 function GuidePage() {
   const { id } = Route.useParams();
   const { t, d } = useI18n();
   const uni = universityOf(id);
-  if (!uni) return <NotFoundInstitution />;
-  const guide = buildGuide(uni);
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfPassword, setPdfPassword] = useState("");
   const [pdfError, setPdfError] = useState("");
+  if (!uni) return <NotFoundInstitution />;
+  const guide = buildGuide(uni);
 
   const downloadPdf = () => {
     const expected = import.meta.env.VITE_GUIDE_PDF_PASSWORD;
@@ -137,10 +140,15 @@ function GuidePage() {
         </Link>
 
         <header className="mt-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-secondary">{t("guide.title")}</p>
-          <h1 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">{uni.name}</h1>
+          <p className="text-xs font-semibold uppercase tracking-widest text-secondary">
+            {t("guide.title")}
+          </p>
+          <h1 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">
+            {uni.name}
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            {uni.city}, {d(uni.country)} · {t(`lang.${uni.instruction}`)} · {t(`budget.${uni.budget}`)}
+            {uni.city}, {d(uni.country)} · {t(`lang.${uni.instruction}`)} ·{" "}
+            {t(`budget.${uni.budget}`)}
           </p>
           <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
             {t("guide.for")}
@@ -149,7 +157,10 @@ function GuidePage() {
 
         <div className="mt-6 flex flex-wrap gap-2">
           {uni.specialties.slice(0, 10).map((s) => (
-            <span key={s} className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground">
+            <span
+              key={s}
+              className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground"
+            >
               {d(specialtyOf(s).label)}
             </span>
           ))}
@@ -162,7 +173,11 @@ function GuidePage() {
         </p>
 
         <p className="mt-3 rounded-xl border border-border bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground">
-          <span className="font-medium text-foreground">{uni.concours ? "Admission route: entrance exam (concours)." : "Admission route: selection on application dossier."}</span>{" "}
+          <span className="font-medium text-foreground">
+            {uni.concours
+              ? "Admission route: entrance exam (concours)."
+              : "Admission route: selection on application dossier."}
+          </span>{" "}
           {uni.concours
             ? "Check the institution's current competition notice for the eligible diploma, subjects, date, fee and exam location."
             : "The institution normally evaluates the submitted application; some programmes may still request an interview, portfolio or test."}
@@ -183,30 +198,72 @@ function GuidePage() {
           {t("guide.note")}
         </p>
 
-        <button type="button" onClick={() => setPdfOpen(true)} className="mt-5 inline-flex rounded-full border border-primary px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10">
+        <button
+          type="button"
+          onClick={() => setPdfOpen(true)}
+          className="mt-5 inline-flex rounded-full border border-primary px-6 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
+        >
           {t("guide.download")}
         </button>
 
-        <a
-            href={uni.website ?? `https://www.google.com/search?q=${encodeURIComponent(`${uni.name} official admissions`)}`}
+        {uni.website ? (
+          <a
+            href={uni.website}
             target="_blank"
             rel="noreferrer"
             className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground"
           >
             {t("guide.website")} →
           </a>
+        ) : (
+          <p className="mt-6 text-sm text-muted-foreground">
+            This institution does not yet have a verified homepage link in the directory.
+          </p>
+        )}
       </article>
       {pdfOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
-            <h2 className="font-display text-xl font-semibold text-foreground">{t("guide.download")}</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">
+              {t("guide.download")}
+            </h2>
             <p className="mt-2 text-sm text-muted-foreground">{t("guide.pdfPasswordHint")}</p>
-            <input type="password" value={pdfPassword} onChange={(event) => { setPdfPassword(event.target.value); setPdfError(""); }} placeholder={t("guide.pdfPassword")} className="mt-4 w-full rounded-xl border border-input bg-background px-3 py-2" />
+            <input
+              type="password"
+              value={pdfPassword}
+              onChange={(event) => {
+                setPdfPassword(event.target.value);
+                setPdfError("");
+              }}
+              placeholder={t("guide.pdfPassword")}
+              className="mt-4 w-full rounded-xl border border-input bg-background px-3 py-2"
+            />
             {pdfError && <p className="mt-2 text-sm text-destructive">{pdfError}</p>}
             <div className="mt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={downloadPdf} className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">{t("guide.downloadConfirm")}</button>
-              <Link to="/request-code" className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground">{t("guide.requestCode")}</Link>
-              <button type="button" onClick={() => setPdfOpen(false)} className="rounded-full px-4 py-2.5 text-sm text-muted-foreground">Cancel</button>
+              <button
+                type="button"
+                onClick={downloadPdf}
+                className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+              >
+                {t("guide.downloadConfirm")}
+              </button>
+              <Link
+                to="/request-code"
+                className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground"
+              >
+                {t("guide.requestCode")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setPdfOpen(false)}
+                className="rounded-full px-4 py-2.5 text-sm text-muted-foreground"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -1,11 +1,21 @@
 import { Link } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Menu, X } from "lucide-react";
 import { LOCALES, useI18n } from "@/i18n";
 
 function LanguageSwitcher() {
   const { locale, setLocale, t } = useI18n();
   const [open, setOpen] = useState(false);
   const current = LOCALES.find((l) => l.code === locale);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [open]);
 
   return (
     <div className="relative">
@@ -53,13 +63,16 @@ function LanguageSwitcher() {
 
 export function SiteHeader() {
   const { t } = useI18n();
+  const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
         <Link to="/" className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary font-display text-lg font-bold text-primary-foreground">
-            SE
-          </span>
+          <img
+            src="/logo.png"
+            alt="Soft Education Bilingual College"
+            className="size-11 rounded-xl object-contain"
+          />
           <span className="leading-tight">
             <span className="block font-display text-sm font-semibold text-foreground sm:text-base">
               {t("brand.name")}
@@ -67,7 +80,23 @@ export function SiteHeader() {
             <span className="block text-xs italic text-secondary">{t("brand.slogan")}</span>
           </span>
         </Link>
-        <nav className="ms-auto flex items-center gap-1 text-sm sm:gap-2">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="site-navigation"
+          aria-label={open ? "Close navigation" : "Open navigation"}
+          onClick={() => setOpen((current) => !current)}
+          className="ms-auto inline-flex size-10 items-center justify-center rounded-lg border border-border text-foreground hover:bg-accent sm:hidden"
+        >
+          {open ? <X className="size-5" /> : <Menu className="size-5" />}
+        </button>
+        <nav
+          id="site-navigation"
+          className={`${open ? "flex" : "hidden"} order-3 w-full flex-col items-stretch gap-1 border-t border-border/70 pt-3 text-sm sm:order-none sm:ms-auto sm:flex sm:w-auto sm:flex-row sm:items-center sm:border-0 sm:pt-0 sm:gap-2`}
+          onClick={(event) => {
+            if ((event.target as HTMLElement).closest("a")) setOpen(false);
+          }}
+        >
           <Link
             to="/orientation"
             className="rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -116,6 +145,13 @@ export function SiteHeader() {
             activeProps={{ className: "rounded-lg px-3 py-2 font-semibold text-foreground" }}
           >
             {t("nav.gpa")}
+          </Link>
+          <Link
+            to="/curriculum-mapping"
+            className="rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            activeProps={{ className: "rounded-lg px-3 py-2 font-semibold text-foreground" }}
+          >
+            {t("nav.subjectMapping")}
           </Link>
           <Link
             to="/scholarships"

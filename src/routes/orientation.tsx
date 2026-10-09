@@ -19,12 +19,7 @@ import {
   type SystemId,
   type Track,
 } from "@/data/catalog";
-import {
-  budgetFor,
-  matchUniversities,
-  nearMatches,
-  type University,
-} from "@/data/universities";
+import { budgetFor, matchUniversities, nearMatches, type University } from "@/data/universities";
 
 export const Route = createFileRoute("/orientation")({
   head: () => ({
@@ -130,6 +125,9 @@ function OrientationPage() {
   const [index, setIndex] = useState(0);
   const [categorySearch, setCategorySearch] = useState("");
   const [jobSearch, setJobSearch] = useState("");
+  const [activeResultsControl, setActiveResultsControl] = useState<"sort" | "filter" | null>(null);
+  const [resultSort, setResultSort] = useState<"name" | "city">("name");
+  const [resultLocation, setResultLocation] = useState("");
 
   const steps =
     answers.system === "international"
@@ -203,9 +201,44 @@ function OrientationPage() {
       region: answers.region,
       budget: answers.budget,
       track: langTrack,
+      educationType:
+        answers.system === "french" ? "bac" : answers.system === "english" ? "gce" : "ossd",
     };
     return { matches: matchUniversities(q), others: nearMatches(q) };
-  }, [answers.region, answers.budget, answers.specialtyId, langTrack]);
+  }, [answers.region, answers.budget, answers.specialtyId, answers.system, langTrack]);
+  const allResults = useMemo(
+    () => [...results.matches, ...results.others],
+    [results.matches, results.others],
+  );
+  const locationOptions =
+    answers.region === "cameroon"
+      ? [...new Set(allResults.map((uni) => uni.city))]
+          .sort((a, b) => a.localeCompare(b))
+          .map((city) => ({ value: city, label: city }))
+      : [...new Map(allResults.map((uni) => [uni.countryCode, d(uni.country)] as const)).entries()]
+          .map(([value, label]) => ({ value, label }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+  const visibleUniversities = (universities: University[]) =>
+    universities
+      .filter((uni) =>
+        resultLocation
+          ? answers.region === "cameroon"
+            ? uni.city === resultLocation
+            : uni.countryCode === resultLocation
+          : true,
+      )
+      .sort((a, b) => {
+        const budgetOrder: Record<Budget, number> = { low: 0, average: 1, high: 2 };
+        const tierDifference =
+          budgetOrder[budgetFor(a, answers.specialtyId)] -
+          budgetOrder[budgetFor(b, answers.specialtyId)];
+        if (tierDifference !== 0) return tierDifference;
+        return resultSort === "city"
+          ? a.city.localeCompare(b.city) || a.name.localeCompare(b.name)
+          : a.name.localeCompare(b.name);
+      });
+  const visibleMatches = visibleUniversities(results.matches);
+  const visibleAlternatives = visibleUniversities(results.others);
 
   const questionKey: Record<StepId, string> = {
     system: "wizard.q.system",
@@ -286,8 +319,8 @@ function OrientationPage() {
         {step === "internationalVariant" && (
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <OptionCard
-              title="French OSSD"
-              subtitle="OSSD pathway delivered in French through Soft Education."
+              title="BACC Francais"
+              subtitle="BACC Francais pathway delivered in French through Soft Education."
               onClick={() => set({ internationalVariant: "french" })}
             />
             <OptionCard
@@ -356,6 +389,12 @@ function OrientationPage() {
                 (s) =>
                   answers.system !== "french" ||
                   (answers.stage === "terminale" ? s.id !== "bac-2nde-stt" : false),
+              )
+              .filter(
+                (s) =>
+                  answers.system !== "french" ||
+                  answers.stage !== "terminale" ||
+                  !["BIL", "TI", "AC"].includes(s.code),
               )
               .map((s) => (
                 <OptionCard
@@ -477,7 +516,14 @@ function OrientationPage() {
         {step === "region" && (
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {(["cameroon", "africa", "world"] as Region[]).map((r) => (
-              <OptionCard key={r} title={t(`region.${r}`)} onClick={() => set({ region: r })} />
+              <OptionCard
+                key={r}
+                title={t(`region.${r}`)}
+                onClick={() => {
+                  setResultLocation("");
+                  set({ region: r });
+                }}
+              />
             ))}
           </div>
         )}
@@ -509,25 +555,90 @@ function OrientationPage() {
               <Chip>{t(`lang.${langTrack}`)}</Chip>
             </div>
 
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                aria-expanded={activeResultsControl === "sort"}
+                onClick={() =>
+                  setActiveResultsControl((active) => (active === "sort" ? null : "sort"))
+                }
+                className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                {t("results.sort")}
+              </button>
+              <button
+                type="button"
+                aria-expanded={activeResultsControl === "filter"}
+                onClick={() =>
+                  setActiveResultsControl((active) => (active === "filter" ? null : "filter"))
+                }
+                className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                {t("results.filter")}
+              </button>
+              {activeResultsControl === "sort" && (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{t("results.sort")}</span>
+                  <select
+                    value={resultSort}
+                    onChange={(event) => setResultSort(event.target.value as "name" | "city")}
+                    className="rounded-lg border border-border bg-card px-3 py-2 text-foreground"
+                  >
+                    <option value="name">{t("results.sort.name")}</option>
+                    <option value="city">{t("results.sort.city")}</option>
+                  </select>
+                </label>
+              )}
+              {activeResultsControl === "filter" && (
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>
+                    {t(
+                      answers.region === "cameroon"
+                        ? "results.filter.town"
+                        : "results.filter.country",
+                    )}
+                  </span>
+                  <select
+                    value={resultLocation}
+                    onChange={(event) => setResultLocation(event.target.value)}
+                    className="rounded-lg border border-border bg-card px-3 py-2 text-foreground"
+                  >
+                    <option value="">
+                      {t(
+                        answers.region === "cameroon"
+                          ? "results.filter.allTowns"
+                          : "results.filter.allCountries",
+                      )}
+                    </option>
+                    {locationOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+
             <p className="mt-6 text-sm text-muted-foreground">
-              {results.matches.length > 0
-                ? `${results.matches.length} ${t("results.count")}`
+              {visibleMatches.length > 0
+                ? `${visibleMatches.length} ${t("results.count")}`
                 : t("results.none")}
             </p>
 
             <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-              {results.matches.map((u) => (
+              {visibleMatches.map((u) => (
                 <UniversityCard key={u.id} uni={u} specialtyId={answers.specialtyId} />
               ))}
             </div>
 
-            {results.others.length > 0 && (
+            {visibleAlternatives.length > 0 && (
               <>
                 <h2 className="mt-12 font-display text-xl font-semibold text-foreground">
                   {t("results.alternatives")}
                 </h2>
                 <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  {results.others.map((u) => (
+                  {visibleAlternatives.map((u) => (
                     <UniversityCard key={u.id} uni={u} specialtyId={answers.specialtyId} />
                   ))}
                 </div>
@@ -616,17 +727,21 @@ export function UniversityCard({
         </p>
       )}
 
-      <a
-        href={
-          uni.website ??
-          `https://www.google.com/search?q=${encodeURIComponent(`${uni.name} official admissions`)}`
-        }
-        target="_blank"
-        rel="noreferrer"
-        className="mt-4 inline-flex w-fit text-sm font-semibold text-primary underline underline-offset-4"
-      >
-        {t("results.website")} →
-      </a>
+      {uni.website ? (
+        <a
+          href={uni.website}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-flex w-fit text-sm font-semibold text-primary underline underline-offset-4"
+        >
+          {t("results.website")} →
+        </a>
+      ) : (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Official homepage link unavailable; verify the institution through its recognised
+          admissions authority before applying.
+        </p>
+      )}
 
       <Link
         to="/university/$id"

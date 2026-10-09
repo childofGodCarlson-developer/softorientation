@@ -17,9 +17,25 @@ Prefer working locally? You need Node.js and npm — [install with nvm](https://
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
+npm ci
 npm run dev
 ```
+
+## Deploy to Netlify
+
+This is a server-rendered TanStack Start app. Deploy it by importing the repository
+into Netlify (or using the Netlify CLI); do not use Netlify Drop to upload the
+source folder as a static site.
+
+The included `netlify.toml` configures the Netlify build and Node.js 22 runtime.
+Netlify installs the dependencies from `package-lock.json` and runs `npm run build`.
+The Nitro Netlify preset packages the server-rendered routes as a Netlify Function.
+
+In Netlify, set the build environment variables used by the app when needed:
+`VITE_ADMIN_EMAIL`, `VITE_ADMIN_PASSWORD`, and `VITE_GUIDE_PDF_PASSWORD`.
+These `VITE_*` values are included in client-side code and must not be treated as
+secrets. For production admin authentication or protected downloads, use a
+server-side authentication service instead.
 
 ## Built with
 

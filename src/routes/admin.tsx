@@ -40,9 +40,9 @@ function initialData(): Record<Collection, AdminItem[]> {
       },
       {
         id: "international",
-        name: "International / French OSSD / English OSSD",
+        name: "International / BACC Francais / English OSSD",
         content:
-          "OSSD certificate options in French and English. IB and Cambridge are not currently offered.",
+          "OSSD certificate options in BACC Francais and English. IB and Cambridge are not currently offered.",
       },
     ],
     jobs: JOBS.map((item) => ({ id: item.id, name: item.label.en, content: item.label.en })),

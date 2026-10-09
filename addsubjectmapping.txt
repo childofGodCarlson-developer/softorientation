@@ -1,0 +1,1595 @@
+Modify the EXISTING international education/university admissions web application.
+
+DO NOT create a separate application.
+
+DO NOT replace the current university database.
+
+DO NOT remove existing university, country, qualification, admissions, GPA or student functionality.
+
+First inspect the complete existing project structure, database schema, API routes, frontend components, authentication, university/programme models and existing admissions/qualification pages.
+
+Reuse the current architecture and design system.
+
+The purpose of this development is to add a new major module:
+
+# INTERNATIONAL CURRICULUM & SUBJECT EQUIVALENCY ENGINE
+
+The module must solve a major international education problem:
+
+Different countries organize academic knowledge differently.
+
+A subject in Cameroon may contain several areas that are treated as separate subjects or courses in another country.
+
+For example:
+
+Cameroon:
+Mathematics
+├── Calculus
+├── Algebra
+├── Statistics
+├── Geometry
+└── other mathematical domains
+
+A foreign university may separately require:
+
+Calculus
+Discrete Mathematics
+Statistics
+Linear Algebra
+
+Therefore the application MUST NOT rely only on subject-name matching.
+
+It must compare the CONTENT, TOPICS, SUBTOPICS, LEARNING OUTCOMES and PREREQUISITES contained inside subjects.
+
+==================================================
+
+1. CORE CONCEPT
+   ==================================================
+
+Build a hierarchical curriculum knowledge model:
+
+COUNTRY
+↓
+EDUCATION SYSTEM
+↓
+QUALIFICATION
+↓
+STREAM / SERIES
+↓
+SUBJECT
+↓
+PAPER / COMPONENT
+↓
+DOMAIN
+↓
+TOPIC
+↓
+SUBTOPIC
+↓
+LEARNING OUTCOME / COMPETENCY
+
+Foreign university requirements must have a parallel structure:
+
+COUNTRY
+↓
+UNIVERSITY
+↓
+FACULTY
+↓
+PROGRAMME
+↓
+DEGREE
+↓
+ADMISSION REQUIREMENT
+↓
+REQUIRED SUBJECT
+↓
+REQUIRED DOMAIN
+↓
+REQUIRED TOPIC
+↓
+REQUIRED COMPETENCY
+
+The two structures must be connected by a:
+
+CURRICULUM MAPPING ENGINE.
+
+==================================================
+2. CAMEROON MUST BE THE FIRST DEEPLY MAPPED SYSTEM
+==================================================
+
+Create detailed curriculum support for the two major Cameroon secondary pathways relevant to this application:
+
+A. ANGLOPHONE / GCE PATHWAY
+
+* GCE Ordinary Level
+* GCE Advanced Level
+
+B. FRANCOPHONE PATHWAY
+
+* Probatoire
+* Baccalauréat
+* Baccalauréat series/specialties where applicable
+
+The application must distinguish:
+
+Qualification
+Series
+Subject
+Paper/component
+Topic
+Subtopic
+
+Do not treat all Cameroon students as following the same curriculum.
+
+==================================================
+3. GCE ADVANCED LEVEL
+=====================
+
+Support the official GCE Advanced Level subjects.
+
+At minimum support the current GCE Board subject structure including:
+
+0705 Accounting
+0710 Biology
+0715 Chemistry
+0725 Economics
+0730 English Language
+0735 Literature in English
+0740 Food Science and Nutrition
+0745 French
+0746 Special Bilingual Education French
+0750 Geography
+0755 Geology
+0760 History
+0765 Pure Mathematics With Mechanics
+0770 Pure Mathematics With Statistics
+0775 Further Mathematics
+0780 Physics
+0785 Religious Studies
+0790 Philosophy
+0795 Computer Science
+0796 Information and Communication Technology
+
+Do not assume that every student studies every subject.
+
+Preserve the actual subject codes.
+
+Where official updated GCE syllabuses are available, associate each topic with:
+
+* syllabus version
+* subject code
+* subject name
+* section
+* topic
+* subtopic
+* learning objective
+* source document
+* source page
+* source URL
+* verification status
+
+DO NOT invent curriculum content.
+
+==================================================
+4. GCE MATHEMATICS SPECIAL HANDLING
+===================================
+
+This is a critical requirement.
+
+The application must understand that mathematical knowledge can be distributed across:
+
+* Pure Mathematics With Mechanics
+* Pure Mathematics With Statistics
+* Further Mathematics
+
+Do not simply create one generic "Mathematics" subject and assume it contains everything.
+
+Model:
+
+GCE A/L Mathematics Family
+├── Pure Mathematics With Mechanics
+├── Pure Mathematics With Statistics
+└── Further Mathematics
+
+Each subject must have its own domains/topics.
+
+The system must then allow foreign subjects such as:
+
+Calculus
+Discrete Mathematics
+Linear Algebra
+Statistics
+Probability
+Mechanics
+Mathematical Analysis
+Number Theory
+Combinatorics
+
+to be mapped to the appropriate Cameroon curriculum topics.
+
+==================================================
+5. FRANCOPHONE / BACCALAUREAT
+=============================
+
+Support the Cameroon Francophone secondary system.
+
+Model:
+
+Baccalauréat
+↓
+Series / Specialty
+↓
+Subjects
+↓
+Domains
+↓
+Topics
+↓
+Subtopics
+↓
+Learning outcomes
+
+At minimum account for the fact that different Baccalauréat series have different subject combinations and emphasis.
+
+Do not treat Baccalauréat as one single curriculum.
+
+Examples of series/specialties may include:
+
+A-series
+C
+D
+TI
+BIL
+and other officially configured pathways.
+
+The exact current list must come from official MINESEC curriculum/qualification documentation.
+
+==================================================
+6. DO NOT PERFORM SIMPLE SUBJECT-NAME MATCHING
+==============================================
+
+This is one of the most important requirements.
+
+The system must NOT conclude:
+
+"Cameroon Mathematics = Foreign Calculus"
+
+simply because both are mathematical subjects.
+
+Instead:
+
+Foreign requirement:
+Calculus I
+
+must be decomposed into required content such as:
+
+* Functions
+* Limits
+* Continuity
+* Differentiation
+* Applications of derivatives
+* Integration
+* Applications of integration
+
+Then search the Cameroon curriculum knowledge base.
+
+Possible result:
+
+Cameroon GCE Mathematics
+└── Calculus
+├── Limits ✓
+├── Continuity ✓
+├── Differentiation ✓
+├── Applications ✓
+└── Integration ✓
+
+Result:
+
+EMBEDDED CONTENT MATCH
+
+==================================================
+7. DISTRIBUTED CONTENT MATCHING
+===============================
+
+The system must support cases where one foreign subject is distributed across multiple Cameroon subjects.
+
+Example:
+
+Foreign requirement:
+Discrete Mathematics
+
+Possible Cameroon sources:
+
+GCE Mathematics
+├── Sets
+├── Logic
+├── Relations
+└── Functions
+
+Further Mathematics
+└── additional mathematical structures
+
+Computer Science
+└── algorithms / discrete computational concepts where officially present
+
+The system must be able to say:
+
+"Content is distributed across multiple Cameroon subjects."
+
+It must NOT automatically call this an exact subject equivalence.
+
+==================================================
+8. MATCH TYPES
+==============
+
+Create these mapping statuses:
+
+DIRECT_MATCH
+
+The same or substantially equivalent subject exists.
+
+EMBEDDED_MATCH
+
+The foreign subject/topic exists inside a larger Cameroon subject.
+
+DISTRIBUTED_MATCH
+
+The foreign requirement is covered across multiple Cameroon subjects.
+
+PARTIAL_MATCH
+
+Only part of the required content has been identified.
+
+RELATED_CONTENT
+
+Related knowledge exists but does not satisfy the full requirement.
+
+NO_MATCH_FOUND
+
+No relevant curriculum content has been identified in the current knowledge base.
+
+UNVERIFIED
+
+Potential relationship identified but requires human verification.
+
+==================================================
+9. COVERAGE ANALYSIS
+====================
+
+Calculate curriculum coverage.
+
+Example:
+
+Foreign requirement:
+
+Calculus I
+
+Required topic groups:
+
+Functions
+Limits
+Continuity
+Differentiation
+Integration
+Applications
+
+Cameroon curriculum:
+
+Functions ✓
+Limits ✓
+Continuity ✓
+Differentiation ✓
+Integration ✓
+Applications ✓
+
+Coverage:
+
+100%
+
+But label this:
+
+"Curriculum content coverage"
+
+NOT:
+
+"Guaranteed admission"
+
+Another example:
+
+Discrete Mathematics:
+
+Sets ✓
+Logic ✓
+Relations ✓
+Combinatorics ✓
+Graph Theory ?
+Proof Techniques ?
+
+Coverage:
+
+PARTIAL
+
+Do not invent missing topics.
+
+==================================================
+10. COVERAGE CALCULATION
+========================
+
+Use configurable weighted coverage.
+
+Example:
+
+coverage =
+SUM(weight of matched required topics)
+/
+SUM(weight of all required topics)
+× 100
+
+Allow administrators to assign topic weights.
+
+Support:
+
+required
+recommended
+optional
+
+For example:
+
+Required topic = weight 3
+Recommended topic = weight 2
+Optional topic = weight 1
+
+Make this configurable.
+
+==================================================
+11. UNIVERSITY REQUIREMENT ENGINE
+=================================
+
+Extend the existing university/programme database.
+
+Each programme should be able to contain:
+
+Admission Requirements
+
+Requirement types:
+
+SUBJECT
+TOPIC
+SUBTOPIC
+LEARNING_OUTCOME
+GRADE
+CREDIT
+QUALIFICATION
+LANGUAGE
+EXAMINATION
+DOCUMENT
+OTHER
+
+Example:
+
+Bachelor of Computer Science
+
+Requirements:
+
+Mathematics
+REQUIRED
+
+Calculus
+REQUIRED
+
+Discrete Mathematics
+REQUIRED
+
+Physics
+RECOMMENDED
+
+Programming
+RECOMMENDED
+
+English
+REQUIRED
+
+==================================================
+12. LOGICAL REQUIREMENTS
+========================
+
+Support:
+
+AND
+OR
+NOT
+
+Example:
+
+Mathematics AND Physics
+
+Mathematics OR Further Mathematics
+
+Mathematics AND (Calculus OR Further Mathematics)
+
+Mathematics INCLUDING Calculus
+
+Create a requirement expression engine rather than storing requirements as simple text.
+
+==================================================
+13. STUDENT CURRICULUM PROFILE
+==============================
+
+Create a student curriculum profile.
+
+Student selects:
+
+Country:
+Cameroon
+
+System:
+GCE
+
+Qualification:
+GCE Advanced Level
+
+Subjects:
+Mathematics
+Computer Science
+Physics
+
+The system automatically retrieves the curriculum content associated with those subjects.
+
+Generate:
+
+STUDENT CURRICULUM PROFILE
+
+Mathematics:
+
+* Calculus
+* Algebra
+* ...
+* etc.
+
+Computer Science:
+
+* Programming
+* Algorithms
+* ...
+* etc.
+
+Physics:
+
+* ...
+* etc.
+
+Only display topics supported by verified curriculum data.
+
+==================================================
+14. STUDENT VS UNIVERSITY REQUIREMENT
+=====================================
+
+Create a matching engine:
+
+STUDENT CURRICULUM
+↓
+CURRICULUM KNOWLEDGE BASE
+↓
+UNIVERSITY PROGRAMME REQUIREMENTS
+↓
+CONTENT MATCHING ENGINE
+↓
+MATCH REPORT
+
+Example output:
+
+UNIVERSITY:
+XYZ University
+
+PROGRAMME:
+BSc Computer Science
+
+Requirement:
+
+Mathematics
+✓ GCE A/L Mathematics
+
+Calculus
+✓ Embedded in Mathematics curriculum
+
+Discrete Mathematics
+~ Partial curriculum coverage
+
+Programming
+✓ GCE A/L Computer Science
+
+Physics
+✓ GCE A/L Physics
+
+English
+✓ GCE A/L English
+
+Do NOT display:
+
+"YOU WILL BE ADMITTED"
+
+Instead display:
+
+"Curriculum requirement coverage identified."
+
+==================================================
+15. EVIDENCE SYSTEM
+===================
+
+Every mapping must contain evidence.
+
+Fields:
+
+source_document
+source_url
+source_page
+source_section
+source_quote_or_summary
+curriculum_version
+verification_status
+verified_by
+verified_date
+
+Example:
+
+Cameroon GCE A/L Mathematics
+↓
+Calculus
+↓
+Official syllabus
+↓
+Page XX
+↓
+Verified
+
+Never allow an AI-generated mapping to become automatically "official."
+
+==================================================
+16. CONFIDENCE SYSTEM
+=====================
+
+Every mapping receives:
+
+HIGH
+MEDIUM
+LOW
+UNVERIFIED
+
+HIGH:
+
+Official curriculum explicitly identifies the topic.
+
+MEDIUM:
+
+Strong curriculum relationship established.
+
+LOW:
+
+Possible relationship requiring review.
+
+UNVERIFIED:
+
+AI or semantic engine suggestion awaiting human verification.
+
+==================================================
+17. AI ASSISTANCE
+=================
+
+AI may be used to:
+
+* identify possible topic relationships
+* recognize synonyms
+* translate French/English terminology
+* identify semantic similarity
+* break university requirements into topic requirements
+* suggest curriculum mappings
+* detect possible distributed content
+* recommend human verification
+
+AI MUST NOT automatically create official equivalencies.
+
+All AI-created mappings must initially be:
+
+UNVERIFIED
+
+An administrator must be able to approve/reject them.
+
+==================================================
+18. MULTILINGUAL TERMINOLOGY
+============================
+
+Support English and French.
+
+Examples:
+
+Calculus
+Calcul différentiel et intégral
+
+Discrete Mathematics
+Mathématiques discrètes
+
+Linear Algebra
+Algèbre linéaire
+
+Probability
+Probabilités
+
+Statistics
+Statistiques
+
+Functions
+Fonctions
+
+Relations
+Relations
+
+Set Theory
+Théorie des ensembles
+
+The system must support synonyms and translations.
+
+Do not assume that different language names mean different concepts.
+
+==================================================
+19. KNOWLEDGE TAXONOMY
+======================
+
+Create a reusable taxonomy.
+
+Example:
+
+MATHEMATICS
+├── Algebra
+├── Calculus
+├── Geometry
+├── Statistics
+├── Probability
+├── Discrete Mathematics
+├── Number Theory
+├── Linear Algebra
+├── Mechanics
+└── Mathematical Analysis
+
+COMPUTER SCIENCE
+├── Programming
+├── Algorithms
+├── Data Structures
+├── Databases
+├── Computer Networks
+├── Operating Systems
+├── Software Engineering
+├── AI
+├── Cybersecurity
+└── Computer Architecture
+
+PHYSICS
+├── Mechanics
+├── Electricity
+├── Magnetism
+├── Waves
+├── Thermodynamics
+├── Optics
+└── Modern Physics
+
+etc.
+
+This taxonomy must be expandable.
+
+==================================================
+20. IMPORTANT: TAXONOMY IS NOT CURRICULUM
+=========================================
+
+Do NOT assume that because a taxonomy contains:
+
+"Linear Algebra"
+
+Cameroon Mathematics automatically contains Linear Algebra.
+
+The taxonomy represents global concepts.
+
+Curriculum mapping determines whether a specific curriculum actually contains those concepts.
+
+==================================================
+21. DATABASE DESIGN
+===================
+
+If equivalent tables already exist, extend them instead of duplicating them.
+
+Create or adapt structures similar to:
+
+countries
+
+education_systems
+
+qualifications
+
+qualification_series
+
+subjects
+
+subject_components
+
+curriculum_domains
+
+curriculum_topics
+
+curriculum_subtopics
+
+learning_outcomes
+
+global_concepts
+
+foreign_subjects
+
+foreign_topics
+
+curriculum_mappings
+
+mapping_evidence
+
+university_programmes
+
+programme_requirements
+
+requirement_topics
+
+requirement_logic
+
+student_qualifications
+
+student_subjects
+
+student_curriculum_profiles
+
+conversion_rules
+
+==================================================
+22. CURRICULUM MAPPING TABLE
+============================
+
+Recommended fields:
+
+id
+source_qualification_id
+source_series_id
+source_subject_id
+source_topic_id
+target_country_id
+target_qualification_id
+target_subject_id
+target_topic_id
+global_concept_id
+mapping_type
+coverage_percentage
+confidence
+evidence_type
+source_document
+source_url
+source_page
+source_section
+verification_status
+verified_by
+verified_at
+notes
+
+==================================================
+23. PROGRAMME REQUIREMENT TABLE
+===============================
+
+Recommended:
+
+id
+programme_id
+requirement_type
+subject_id
+topic_id
+global_concept_id
+minimum_grade
+required
+recommended
+weight
+logic_group
+notes
+source_url
+verified
+verification_date
+
+==================================================
+24. USER INTERFACE
+==================
+
+Add a new page:
+
+/curriculum-mapping
+
+Title:
+
+"International Curriculum & Subject Equivalency"
+
+Subtitle:
+
+"Understand how your education maps to academic requirements in other countries."
+
+Create three main modes:
+
+MODE 1:
+"What did I study?"
+
+MODE 2:
+"Does my curriculum meet this requirement?"
+
+MODE 3:
+"Compare curricula"
+
+==================================================
+25. MODE 1
+==========
+
+Student selects:
+
+Country
+Education System
+Qualification
+Series
+Subjects
+
+Then display:
+
+YOUR CURRICULUM PROFILE
+
+Subject
+↓
+Domains
+↓
+Topics
+↓
+Subtopics
+
+Allow expansion/collapse.
+
+==================================================
+26. MODE 2
+==========
+
+Student selects:
+
+Country
+University
+Programme
+
+The application retrieves the programme's admission requirements.
+
+Then compare:
+
+STUDENT CURRICULUM
+VS
+PROGRAMME REQUIREMENTS
+
+Display:
+
+DIRECT MATCH
+EMBEDDED MATCH
+DISTRIBUTED MATCH
+PARTIAL MATCH
+NO MATCH FOUND
+UNVERIFIED
+
+==================================================
+27. MODE 3
+==========
+
+Allow:
+
+Compare two education systems.
+
+Example:
+
+Cameroon GCE A/L
+vs
+UK A Level
+
+or:
+
+Cameroon Baccalauréat C
+vs
+French Baccalauréat / foreign curriculum
+
+or:
+
+Cameroon GCE Mathematics
+vs
+Foreign Calculus course
+
+Display:
+
+Topic
+Cameroon
+Foreign
+Relationship
+Coverage
+Evidence
+Confidence
+
+==================================================
+28. IMPORTANT USER-FACING LANGUAGE
+==================================
+
+Never tell users:
+
+"Your subject is equivalent."
+
+unless an officially documented equivalency exists.
+
+Prefer:
+
+"Direct curriculum match"
+
+"Embedded curriculum match"
+
+"Partial curriculum coverage"
+
+"Related content identified"
+
+"Comparable content identified"
+
+"Not enough curriculum evidence"
+
+"Official equivalency not established"
+
+==================================================
+29. EXAMPLE
+===========
+
+User:
+
+Cameroon
+GCE Advanced Level
+Mathematics
+
+Foreign requirement:
+
+Discrete Mathematics
+
+System:
+
+DISCRETE MATHEMATICS
+
+Possible curriculum relationships:
+
+Sets
+✓ Found
+
+Logic
+✓ Found
+
+Relations
+✓ Found
+
+Functions
+✓ Found
+
+Combinatorics
+✓ / Partial depending on verified curriculum
+
+Graph Theory
+? Not found in verified data
+
+Proof Techniques
+? Not found in verified data
+
+Result:
+
+PARTIAL CURRICULUM COVERAGE
+
+Coverage:
+XX%
+
+Confidence:
+MEDIUM/HIGH depending on evidence
+
+Important:
+
+"This analysis compares curriculum content. It does not guarantee that a university will consider the requirement satisfied."
+
+==================================================
+30. SECOND EXAMPLE
+==================
+
+Foreign requirement:
+
+Calculus I
+
+Cameroon:
+
+GCE A/L Mathematics
+
+System identifies:
+
+Limits
+Differentiation
+Integration
+Applications
+
+Result:
+
+EMBEDDED CURRICULUM MATCH
+
+Display exactly which Cameroon curriculum sections support the relationship.
+
+==================================================
+31. THIRD EXAMPLE
+=================
+
+Foreign requirement:
+
+Computer Programming
+
+Cameroon:
+
+GCE A/L Computer Science
+
+System identifies verified curriculum topics:
+
+Programming
+Algorithms
+Data structures
+etc.
+
+Result:
+
+DIRECT / STRONG CURRICULUM MATCH
+
+depending on the actual verified syllabus.
+
+==================================================
+32. BACCALAUREAT EXAMPLE
+========================
+
+Student:
+
+Cameroon Baccalauréat C
+
+University requirement:
+
+Mathematics
+Physics
+Calculus
+
+System should analyze:
+
+Baccalauréat C
+↓
+Mathematics
+↓
+Curriculum topics
+↓
+Calculus-related content
+
+and:
+
+Baccalauréat C
+↓
+Physics
+↓
+Physics curriculum
+
+Do NOT simply use:
+
+"Baccalauréat C = Mathematics"
+
+Instead inspect the actual curriculum content.
+
+==================================================
+33. SEARCH ENGINE
+=================
+
+Implement semantic curriculum search.
+
+Search examples:
+
+"Calculus"
+
+"calculus I"
+
+"discrete mathematics"
+
+"mathématiques discrètes"
+
+"programmation"
+
+"programming"
+
+"linear algebra"
+
+"algèbre linéaire"
+
+The search engine should search:
+
+subject
+domain
+topic
+subtopic
+learning outcome
+synonym
+translation
+global concept
+
+==================================================
+34. SYNONYM ENGINE
+==================
+
+Support:
+
+Calculus
+Calcul
+Calcul différentiel
+Calcul intégral
+Differential calculus
+Integral calculus
+
+But do NOT treat every synonym as proof of curriculum equivalence.
+
+Synonyms assist discovery only.
+
+Evidence determines the final mapping.
+
+==================================================
+35. ADMIN DASHBOARD
+===================
+
+Create an administration interface where authorized administrators can:
+
+* Add curriculum
+* Add qualification
+* Add series
+* Add subject
+* Add domain
+* Add topic
+* Add subtopic
+* Add learning outcome
+* Upload/reference syllabus
+* Add foreign subject
+* Add foreign requirement
+* Create mapping
+* Review AI suggestions
+* Approve mapping
+* Reject mapping
+* Set confidence
+* Set coverage
+* Add evidence
+* Version curriculum
+* Archive old curriculum versions
+
+==================================================
+36. CURRICULUM VERSIONING
+=========================
+
+This is essential.
+
+Curricula can change.
+
+Therefore store:
+
+academic_year
+curriculum_version
+effective_from
+effective_until
+status
+
+A student's curriculum must be evaluated against the curriculum version applicable during the student's period of study.
+
+Do NOT use today's curriculum automatically for a student who graduated years ago.
+
+==================================================
+37. HISTORICAL CURRICULUM
+=========================
+
+Support:
+
+2020 curriculum
+2021 curriculum
+2022 curriculum
+2023 curriculum
+2024 curriculum
+2025 curriculum
+2026 curriculum
+
+etc.
+
+Only create a year/version when verified source data exists.
+
+==================================================
+38. SOURCE PRIORITY
+===================
+
+Use this evidence priority:
+
+1. Official government curriculum
+2. Official examination board syllabus
+3. Official university programme/admission requirement
+4. Official qualification authority
+5. Recognized institutional curriculum
+6. Secondary academic source
+7. AI suggestion
+
+Never treat AI-generated information as equivalent to an official source.
+
+==================================================
+39. NO HALLUCINATED CURRICULUM
+==============================
+
+CRITICAL:
+
+Do not invent Cameroon syllabus topics.
+
+Do not assume that a topic exists because it is commonly taught elsewhere.
+
+Do not create an official-looking mapping without evidence.
+
+If evidence is unavailable:
+
+status = UNVERIFIED
+
+==================================================
+40. EXISTING UNIVERSITY DATABASE INTEGRATION
+============================================
+
+Connect this module to the existing university database.
+
+For every university programme already stored in the application, allow administrators to add structured requirements.
+
+Example:
+
+University
+↓
+Faculty
+↓
+Programme
+↓
+Degree
+↓
+Requirements
+↓
+Curriculum concepts
+
+This should integrate with the existing international admissions search.
+
+==================================================
+41. SEARCH RESULT ENHANCEMENT
+=============================
+
+When a Cameroonian student searches for a foreign programme, show:
+
+PROGRAMME
+
+Admission requirement:
+Mathematics
+
+Curriculum relationship:
+✓ Found in Cameroon curriculum
+
+Admission requirement:
+Calculus
+
+Curriculum relationship:
+✓ Embedded in GCE Mathematics
+
+Admission requirement:
+Discrete Mathematics
+
+Curriculum relationship:
+~ Partial coverage
+
+Admission requirement:
+Physics
+
+Curriculum relationship:
+✓ GCE Physics
+
+This should appear as an additional:
+
+"Curriculum Compatibility"
+
+section.
+
+==================================================
+42. DO NOT TURN THIS INTO AN ADMISSION DECISION
+===============================================
+
+The system must not say:
+
+"Guaranteed admission."
+
+"Eligible."
+
+"University will accept this."
+
+unless the university itself explicitly states the corresponding rule and the application is reproducing that official rule.
+
+Prefer:
+
+"Requirement coverage identified."
+
+"Potential match."
+
+"Official requirement appears satisfied based on the configured rule."
+
+"University confirmation may be required."
+
+==================================================
+43. REPORT GENERATION
+=====================
+
+Allow the user to generate a:
+
+"Curriculum Equivalency & Requirement Analysis Report"
+
+Include:
+
+Student
+Country
+Education system
+Qualification
+Series
+Subjects
+Curriculum topics
+Target university
+Target programme
+Admission requirements
+Matched topics
+Unmatched topics
+Coverage
+Confidence
+Evidence
+Source documents
+Important disclaimer
+
+==================================================
+44. VISUALIZATION
+=================
+
+Create a visual mapping:
+
+CAMEROON CURRICULUM
+
+Mathematics
+├── Calculus ─────────────→ Calculus I
+├── Statistics ───────────→ Statistics
+├── Algebra ──────────────→ Algebra
+└── Logic ────────────────→ Discrete Mathematics
+
+Use lines/arrows to show relationships.
+
+Use different visual states for:
+
+Direct
+Embedded
+Distributed
+Partial
+Unverified
+No match
+
+Do not rely on color alone; include labels/icons/text.
+
+==================================================
+45. PERFORMANCE
+===============
+
+Do not calculate the entire global knowledge graph on every page load.
+
+Use:
+
+indexed searches
+cached mappings
+precomputed relationships
+normalized concepts
+efficient database queries
+
+Only perform expensive semantic matching when necessary.
+
+==================================================
+46. SECURITY
+============
+
+Only authorized administrators may modify:
+
+official curriculum mappings
+university requirements
+verified evidence
+qualification structures
+
+Normal users can view results but cannot modify official mappings.
+
+==================================================
+47. TESTING
+===========
+
+Create tests for:
+
+1. Direct subject match
+2. Embedded topic match
+3. Distributed topic match
+4. Partial match
+5. No match
+6. Unverified match
+7. AND requirement
+8. OR requirement
+9. Nested AND/OR requirement
+10. Multiple Cameroon subjects satisfying one foreign requirement
+11. One Cameroon subject satisfying multiple foreign requirements
+12. Different curriculum versions
+13. French/English terminology
+14. Missing evidence
+15. Conflicting mappings
+16. Student with incomplete subject selection
+17. Baccalauréat series differences
+18. GCE Mathematics family differences
+
+==================================================
+48. DATA INTEGRITY
+==================
+
+Do not delete existing university or student data.
+
+Do not duplicate existing countries.
+
+Do not create duplicate universities.
+
+Do not create duplicate programmes.
+
+Use existing IDs and relationships where available.
+
+Before database migration:
+
+Inspect existing schema.
+
+Create migrations safely.
+
+Make all changes reversible.
+
+==================================================
+49. FINAL ARCHITECTURAL PRINCIPLE
+=================================
+
+The application must understand:
+
+SUBJECT ≠ TOPIC
+
+TOPIC ≠ LEARNING OUTCOME
+
+QUALIFICATION ≠ SUBJECT
+
+SUBJECT NAME ≠ CURRICULUM CONTENT
+
+CURRICULUM COVERAGE ≠ OFFICIAL QUALIFICATION EQUIVALENCY
+
+CURRICULUM MATCH ≠ GUARANTEED UNIVERSITY ADMISSION
+
+The system's purpose is to establish transparent, evidence-based relationships between academic content across education systems.
+
+==================================================
+50. FINAL IMPLEMENTATION CHECK
+==============================
+
+After implementation:
+
+1. Run all existing tests.
+2. Run all new tests.
+3. Run database migrations.
+4. Verify existing pages.
+5. Verify existing university search.
+6. Verify existing GPA conversion.
+7. Verify curriculum search.
+8. Verify GCE pathway.
+9. Verify Baccalauréat pathway.
+10. Verify French/English terminology.
+11. Verify requirement matching.
+12. Verify AND/OR logic.
+13. Verify evidence display.
+14. Verify curriculum versioning.
+15. Verify mobile responsiveness.
+16. Run production build.
+17. Fix all errors.
+18. Do not leave placeholder curriculum data presented as verified data.
+

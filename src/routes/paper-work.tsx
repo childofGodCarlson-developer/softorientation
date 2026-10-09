@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { PageShell } from "@/components/site-chrome";
 import { useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/paper-work")({ component: PaperWorkPage });
 
-type LetterType = "motivation" | "application";
+type LetterType = "motivation" | "application" | "personal";
 type FormState = {
   name: string;
   address: string;
@@ -17,7 +17,9 @@ type FormState = {
   experience: string;
   reasons: string;
   goals: string;
+  strengths: string;
 };
+
 const initial: FormState = {
   name: "",
   address: "",
@@ -29,23 +31,41 @@ const initial: FormState = {
   experience: "",
   reasons: "",
   goals: "",
+  strengths: "",
+};
+
+const templates: Record<LetterType, string[]> = {
+  motivation: ["Academic focus", "Career change", "Scholarship-focused"],
+  application: ["Formal admission", "Transfer applicant", "Graduate applicant"],
+  personal: ["Personal journey", "Community impact", "Research potential"],
 };
 
 function PaperWorkPage() {
   const { t } = useI18n();
   const [type, setType] = useState<LetterType>("motivation");
+  const [template, setTemplate] = useState(templates.motivation[0]);
   const [form, setForm] = useState<FormState>(initial);
   const [letter, setLetter] = useState("");
   const update = (key: keyof FormState, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
-  const generate = (event: React.FormEvent) => {
+
+  const generate = (event: FormEvent) => {
     event.preventDefault();
-    const greeting =
-      type === "motivation" ? "Dear Admissions Committee," : "Subject: Application for admission";
+    const salutation =
+      type === "application" ? "Subject: Application for admission" : "Dear Admissions Committee,";
+    const opening =
+      type === "personal"
+        ? `My journey toward ${form.programme} has been shaped by curiosity, persistence and a desire to use education in service of others.`
+        : `I am writing to ${type === "motivation" ? "express my strong motivation to join" : "formally apply for admission to"} ${form.programme} at ${form.university}.`;
+    const focus =
+      type === "application"
+        ? `I respectfully request consideration for admission and am prepared to complete every academic, administrative and language requirement for this programme.`
+        : `The programme is a natural next step because ${form.reasons}. It connects my preparation with my goal to ${form.goals}.`;
     setLetter(
-      `${form.name}\n${form.address}\n${form.email} | ${form.phone}\n\n${new Date().toLocaleDateString()}\n\n${greeting}\n\nI am writing to ${type === "motivation" ? "express my strong motivation to join" : "formally apply for admission to"} ${form.programme} at ${form.university}. I hold ${form.qualification} and have developed my interest through ${form.experience || "my academic studies and personal projects"}.\n\nI am choosing this programme because ${form.reasons}. It matches my academic preparation and my goal to ${form.goals}. I am ready to work diligently, respect the institution's rules and contribute positively to its academic community.\n\nThank you for considering my application. I would welcome the opportunity to provide any additional information.\n\nYours faithfully,\n${form.name}`,
+      `${form.name}\n${form.address}\n${form.email} | ${form.phone}\n\n${new Date().toLocaleDateString()}\n\n${salutation}\n\n${opening} I hold ${form.qualification} and have developed my interest through ${form.experience || "academic studies, independent learning and personal projects"}.\n\n${focus}\n\nMy strengths include ${form.strengths || "discipline, collaboration, clear communication and a willingness to learn from feedback"}. I would bring a thoughtful and dependable attitude to your classrooms, projects and wider student community. I understand that successful study requires consistent work, respect for different perspectives and responsible use of university resources.\n\nI have researched the expectations of ${form.university} and I am particularly attracted by the opportunity to learn in an international academic environment. I will contribute through active participation, honest work and the practical experience I have gained so far. My long-term objective is to ${form.goals}, while remaining open to mentorship and new responsibilities.\n\nThank you for considering this ${template.toLowerCase()} draft. I would welcome the opportunity to provide transcripts, references or any additional information required. I look forward to the possibility of joining your institution and contributing positively to its academic community.\n\nYours faithfully,\n${form.name}`,
     );
   };
+
   return (
     <PageShell>
       <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -56,8 +76,8 @@ function PaperWorkPage() {
           {t("page.paperwork.title")}
         </h1>
         <p className="mt-3 text-muted-foreground">
-          {t("page.paperwork.lead")} Review it carefully and adapt it to the university's
-          requirements before sending.
+          {t("page.paperwork.lead")} Choose a style, complete the form and personalise the generated
+          draft before sending it.
         </p>
         <form
           onSubmit={generate}
@@ -67,11 +87,28 @@ function PaperWorkPage() {
             Letter type
             <select
               value={type}
-              onChange={(e) => setType(e.target.value as LetterType)}
+              onChange={(e) => {
+                const next = e.target.value as LetterType;
+                setType(next);
+                setTemplate(templates[next][0]);
+              }}
               className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2"
             >
               <option value="motivation">Motivation letter</option>
+              <option value="personal">Personal statement</option>
               <option value="application">Application letter</option>
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Template style
+            <select
+              value={template}
+              onChange={(e) => setTemplate(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2"
+            >
+              {templates[type].map((item) => (
+                <option key={item}>{item}</option>
+              ))}
             </select>
           </label>
           {(
@@ -95,42 +132,38 @@ function PaperWorkPage() {
               />
             </label>
           ))}
-          <label className="text-sm font-medium sm:col-span-2">
-            Academic experience
-            <textarea
-              value={form.experience}
-              onChange={(e) => update("experience", e.target.value)}
-              className="mt-1 min-h-20 w-full rounded-xl border border-input bg-background px-3 py-2"
-            />
-          </label>
-          <label className="text-sm font-medium sm:col-span-2">
-            Why this university/programme?
-            <textarea
-              required
-              value={form.reasons}
-              onChange={(e) => update("reasons", e.target.value)}
-              className="mt-1 min-h-20 w-full rounded-xl border border-input bg-background px-3 py-2"
-            />
-          </label>
-          <label className="text-sm font-medium sm:col-span-2">
-            Career goals
-            <textarea
-              required
-              value={form.goals}
-              onChange={(e) => update("goals", e.target.value)}
-              className="mt-1 min-h-20 w-full rounded-xl border border-input bg-background px-3 py-2"
-            />
-          </label>
+          {(
+            [
+              ["experience", "Academic experience"],
+              ["reasons", "Why this university/programme?"],
+              ["goals", "Career goals"],
+              ["strengths", "Strengths, achievements or community work"],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key} className="text-sm font-medium sm:col-span-2">
+              {label}
+              <textarea
+                required={key !== "experience" && key !== "strengths"}
+                value={form[key]}
+                onChange={(e) => update(key, e.target.value)}
+                className="mt-1 min-h-20 w-full rounded-xl border border-input bg-background px-3 py-2"
+              />
+            </label>
+          ))}
           <button
             type="submit"
             className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground sm:col-span-2"
           >
-            Generate letter
+            Generate longer draft
           </button>
         </form>
         {letter && (
           <section className="mt-8 rounded-2xl border border-secondary/40 bg-secondary/5 p-6">
             <h2 className="font-display text-xl font-semibold">Generated draft</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              This is an assisted writing template, not legal or admissions advice. Verify every
+              claim and requirement.
+            </p>
             <pre className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
               {letter}
             </pre>

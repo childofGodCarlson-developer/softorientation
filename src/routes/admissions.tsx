@@ -54,9 +54,36 @@ function AdmissionsPage() {
           ))}
         </div>
         <div className="mt-8 rounded-2xl border-2 border-secondary/40 bg-secondary/5 p-5 text-sm text-foreground">
-          <strong>Official Cameroon starting points:</strong> Campus France Cameroun for France, the
-          German Embassy Yaoundé for Germany, France-Visas, IRCC Canada, GOV.UK visas and the U.S.
-          Embassy Yaoundé. Use their current websites and never submit false documents.
+          <strong>Official Cameroon starting points:</strong>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[
+              ["Campus France Cameroun", "https://www.campusfrance.org/en"],
+              ["France-Visas", "https://france-visas.gouv.fr/en/web/france-visas/student"],
+              ["German Embassy Yaoundé", "https://jaunde.diplo.de/cm-en"],
+              [
+                "IRCC Canada",
+                "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada.html",
+              ],
+              ["UK Student visa", "https://www.gov.uk/student-visa"],
+              [
+                "U.S. student visa",
+                "https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html",
+              ],
+            ].map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-secondary/50 px-3 py-1.5 font-semibold text-primary hover:bg-background"
+              >
+                {label} →
+              </a>
+            ))}
+          </div>
+          <p className="mt-3">
+            Use the current official websites and never submit false documents.
+          </p>
         </div>
       </section>
     </PageShell>

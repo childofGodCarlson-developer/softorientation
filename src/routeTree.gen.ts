@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
+import { Route as CurriculumMappingRouteImport } from './routes/curriculum-mapping'
 import { Route as EmbassiesRouteImport } from './routes/embassies'
 import { Route as GpaConversionRouteImport } from './routes/gpa-conversion'
 import { Route as OrientationRouteImport } from './routes/orientation'
@@ -41,6 +42,11 @@ const AdminRoute = AdminRouteImport.update({
 const AdmissionsRoute = AdmissionsRouteImport.update({
   id: '/admissions',
   path: '/admissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CurriculumMappingRoute = CurriculumMappingRouteImport.update({
+  id: '/curriculum-mapping',
+  path: '/curriculum-mapping',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmbassiesRoute = EmbassiesRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/admissions': typeof AdmissionsRoute
+  '/curriculum-mapping': typeof CurriculumMappingRoute
   '/embassies': typeof EmbassiesRoute
   '/gpa-conversion': typeof GpaConversionRoute
   '/orientation': typeof OrientationRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/admissions': typeof AdmissionsRoute
+  '/curriculum-mapping': typeof CurriculumMappingRoute
   '/embassies': typeof EmbassiesRoute
   '/gpa-conversion': typeof GpaConversionRoute
   '/orientation': typeof OrientationRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/admissions': typeof AdmissionsRoute
+  '/curriculum-mapping': typeof CurriculumMappingRoute
   '/embassies': typeof EmbassiesRoute
   '/gpa-conversion': typeof GpaConversionRoute
   '/orientation': typeof OrientationRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/admissions'
+    | '/curriculum-mapping'
     | '/embassies'
     | '/gpa-conversion'
     | '/orientation'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/admissions'
+    | '/curriculum-mapping'
     | '/embassies'
     | '/gpa-conversion'
     | '/orientation'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/admissions'
+    | '/curriculum-mapping'
     | '/embassies'
     | '/gpa-conversion'
     | '/orientation'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   AdmissionsRoute: typeof AdmissionsRoute
+  CurriculumMappingRoute: typeof CurriculumMappingRoute
   EmbassiesRoute: typeof EmbassiesRoute
   GpaConversionRoute: typeof GpaConversionRoute
   OrientationRoute: typeof OrientationRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/admissions'
       fullPath: '/admissions'
       preLoaderRoute: typeof AdmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/curriculum-mapping': {
+      id: '/curriculum-mapping'
+      path: '/curriculum-mapping'
+      fullPath: '/curriculum-mapping'
+      preLoaderRoute: typeof CurriculumMappingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/embassies': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   AdmissionsRoute: AdmissionsRoute,
+  CurriculumMappingRoute: CurriculumMappingRoute,
   EmbassiesRoute: EmbassiesRoute,
   GpaConversionRoute: GpaConversionRoute,
   OrientationRoute: OrientationRoute,

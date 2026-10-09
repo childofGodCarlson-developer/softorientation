@@ -1,0 +1,739 @@
+Modify the EXISTING web application and improve the existing Grade/GPA Conversion page. Do NOT create a separate unrelated application. First inspect the existing project structure, routing system, components, database schema, API structure, styling system, authentication system and existing GPA/grade-conversion page. Reuse the existing architecture, components, database connection and design system wherever possible.
+
+IMPORTANT:
+Do not destroy, replace or duplicate existing functionality.
+Do not create a new project.
+Do not change the existing Git branch structure.
+Do not invent a new framework if the application already has a framework.
+Do not remove existing routes.
+Before making changes, identify the existing page, its route, relevant components, database tables and API endpoints.
+
+==================================================
+PROJECT OBJECTIVE
+=================
+
+Upgrade the existing GPA/Grade Conversion page into a professional:
+
+"International Grade & GPA Converter"
+
+The primary source system must be the CAMEROONIAN EDUCATION SYSTEM, with special support for:
+
+1. Cameroon Anglophone Secondary Education
+
+   * GCE Ordinary Level
+   * GCE Advanced Level
+
+2. Cameroon Francophone Secondary Education
+
+   * Probatoire
+   * Baccalauréat
+
+The Cameroon GCE Board officially reports Advanced Level results using grades including A, B, C, D, E, O and F. Preserve these original grades rather than inventing official percentage equivalents.
+
+The French subsystem culminates in the Baccalauréat and uses a 0–20 grading scale.
+
+==================================================
+CORE DESIGN PRINCIPLE
+=====================
+
+NEVER pretend that there is one universally official international GPA conversion.
+
+The system must distinguish between:
+
+A. ORIGINAL RESULT
+B. NORMALIZED RESULT
+C. REFERENCE INTERNATIONAL CONVERSION
+D. OFFICIAL/INSTITUTION-SPECIFIC CONVERSION
+
+The application must clearly display:
+
+"Reference conversion only — not an official university credential equivalency."
+
+The original Cameroon result must ALWAYS remain visible.
+
+Do not overwrite the original grade with the converted grade.
+
+==================================================
+SUPPORTED SOURCE SYSTEMS
+========================
+
+Create a configurable source grading engine supporting:
+
+CAMEROON:
+
+* General school percentage
+* GCE Ordinary Level
+* GCE Advanced Level
+* Baccalauréat
+* Probatoire
+
+For numeric Cameroon results:
+
+* 0–20
+* 0–100
+
+For Cameroon GCE:
+
+* A
+* B
+* C
+* D
+* E
+* O
+* F
+
+==================================================
+SUPPORTED INTERNATIONAL TARGET SYSTEMS
+======================================
+
+Add configurable reference conversion support for:
+
+1. United States
+
+   * Percentage
+   * Letter grade
+   * 4.0 GPA
+
+2. Canada
+
+   * Percentage
+   * Letter grade
+   * Ontario/OSSD-style display
+   * Institution-specific GPA conversion capability
+
+3. United Kingdom
+
+   * GCSE 9–1
+   * Traditional GCSE A*–G
+   * A Level A*–E
+
+4. Cambridge International
+
+   * IGCSE A*–G
+   * IGCSE 9–1 where applicable
+   * AS/A Level
+   * A*–E
+
+5. International Baccalaureate
+
+   * IB 1–7 subject scale
+   * IB Diploma 45-point framework
+   * ONLY provide clearly labelled reference bands where no official conversion exists
+
+6. France
+
+   * 0–20
+
+7. Germany
+
+   * 1.0–6.0
+   * Include configurable German/Bavarian-style conversion formula
+
+8. Nigeria
+
+   * Percentage
+   * Letter grade
+   * Configurable GPA mapping
+
+9. South Africa
+
+   * Percentage
+   * Achievement-level interpretation
+
+The architecture must allow additional countries and grading systems to be added later without rewriting the conversion engine.
+
+==================================================
+NORMALIZATION ENGINE
+====================
+
+For numeric grades, use:
+
+normalized_percentage =
+((student_score - minimum_score) /
+(maximum_score - minimum_score)) * 100
+
+For a standard 0–20 score:
+
+normalized_percentage =
+(student_score / 20) * 100
+
+For a 0–100 score:
+
+normalized_percentage =
+student_score
+
+For a 0–10 score:
+
+normalized_percentage =
+(student_score / 10) * 100
+
+Always round display values appropriately but retain the raw calculation internally.
+
+==================================================
+US REFERENCE GPA
+================
+
+Create a configurable US-style 4.0 reference table:
+
+93–100 = A = 4.0
+90–92 = A- = 3.7
+87–89 = B+ = 3.3
+83–86 = B = 3.0
+80–82 = B- = 2.7
+77–79 = C+ = 2.3
+73–76 = C = 2.0
+70–72 = C- = 1.7
+67–69 = D+ = 1.3
+63–66 = D = 1.0
+60–62 = D- = 0.7
+Below 60 = F = 0.0
+
+Make this table editable through configuration/database rather than hard-coded throughout the frontend.
+
+==================================================
+CANADA / ONTARIO
+================
+
+Do NOT describe this as a single national Canadian GPA.
+
+Canada has different provincial and institutional grading practices.
+
+For Ontario/OSSD mode, preserve the percentage as the principal result.
+
+Display:
+
+90–100%
+80–89%
+70–79%
+60–69%
+50–59%
+Below 50%
+
+Allow institution-specific GPA mappings to be added later.
+
+==================================================
+UK
+==
+
+Create configurable reference mappings for:
+
+GCSE 9–1
+Traditional GCSE A*–G
+A Level A*–E
+
+Do not claim that the conversion is an official UK qualification equivalency.
+
+==================================================
+CAMBRIDGE
+=========
+
+Support:
+
+IGCSE:
+A*, A, B, C, D, E, F, G
+
+Where applicable:
+9, 8, 7, 6, 5, 4, 3, 2, 1
+
+A Level:
+A*, A, B, C, D, E
+
+Keep Cambridge as a separate qualification system.
+
+==================================================
+IB
+==
+
+Support:
+
+1 = lowest
+2
+3
+4
+5
+6
+7 = highest
+
+Also support:
+
+IB Diploma:
+maximum 45 points
+
+Do NOT automatically claim that a specific Cameroon percentage is officially equivalent to a specific IB score.
+
+Where an estimated comparison is shown, label it:
+
+"Reference IB performance band"
+
+and include:
+
+"IB universities may apply their own conversion/evaluation."
+
+==================================================
+FRANCE
+======
+
+Support 0–20.
+
+For numeric Cameroon Baccalauréat results:
+
+French reference score = original score
+
+Example:
+
+16/20 Cameroon
+→ 16/20 French reference scale
+→ 80% normalized
+
+==================================================
+GERMANY
+=======
+
+Support German 1.0–6.0 grading.
+
+Implement a configurable formula:
+
+GermanGrade =
+1 + 3 * ((Nmax - N) / (Nmax - Nmin))
+
+Default:
+
+Nmax = 20
+Nmin = 10
+
+Example:
+
+16/20
+→ approximately 2.2 German reference grade
+
+Make Nmax and Nmin configurable.
+
+==================================================
+SOUTH AFRICA
+============
+
+Support percentage-based interpretation:
+
+80–100 = Outstanding
+70–79 = Very Good
+60–69 = Good
+50–59 = Adequate
+40–49 = Basic/Pass Range
+30–39 = Elementary
+0–29 = Not Achieved
+
+Clearly mark this as a reference interpretation.
+
+==================================================
+NIGERIA
+=======
+
+Support configurable:
+
+Percentage
+Letter grade
+GPA
+
+Do not assume every Nigerian university uses the same GPA system.
+
+Allow university-specific Nigerian grading profiles to be added.
+
+==================================================
+GCE A/L SPECIAL LOGIC
+=====================
+
+IMPORTANT:
+
+Do NOT convert Cameroon GCE A-Level grades to percentages using an invented formula.
+
+The official source result should remain:
+
+A
+B
+C
+D
+E
+O
+F
+
+If an international reference conversion is displayed, label it:
+
+"Reference comparison"
+
+not:
+
+"Official equivalent"
+
+The system should allow an administrator to define a reference mapping for international comparison without changing the original GCE grade.
+
+==================================================
+TRANSCRIPT INPUT
+================
+
+Allow users to enter multiple subjects.
+
+Fields:
+
+Student Name
+Country
+Education System
+Qualification
+Academic Year
+Subject
+Subject Code
+Score
+Maximum Score
+Original Grade
+Credit
+Coefficient/Weight
+Pass/Fail Status
+
+Example:
+
+Computer Science
+16/20
+4 credits
+
+Mathematics
+15/20
+4 credits
+
+English
+14/20
+3 credits
+
+etc.
+
+Allow unlimited subjects.
+
+==================================================
+WEIGHTED GPA
+============
+
+Where credits are supplied:
+
+GPA =
+SUM(grade_point × credit) /
+SUM(credits)
+
+If no credits are supplied:
+
+use the configured equal-weight method.
+
+Display which method was used.
+
+==================================================
+RESULT DISPLAY
+==============
+
+After calculation, display a professional result card:
+
+ORIGINAL CAMEROON RESULT
+16/20
+
+NORMALIZED RESULT
+80%
+
+INTERNATIONAL REFERENCE
+
+United States:
+B
+3.0 / 4.0
+
+Canada / Ontario:
+80%
+
+United Kingdom:
+Reference band
+
+Cambridge:
+Reference band
+
+IB:
+Reference band
+
+France:
+16/20
+
+Germany:
+2.2
+
+Nigeria:
+Reference band
+
+South Africa:
+80% / Very Good
+
+Each result must contain a small:
+
+"How was this calculated?"
+
+link/button.
+
+When clicked, show the formula and explain whether it is:
+
+* Mathematical normalization
+* Reference conversion
+* Institution-specific conversion
+* Official qualification equivalency
+
+==================================================
+DISCLAIMER
+==========
+
+Display prominently:
+
+"Important: International grade and GPA conversions vary by country, institution, qualification and admission policy. The results shown here are reference conversions and are not official credential evaluations. Universities, employers, immigration authorities and professional bodies may use their own conversion or assessment methods. Always verify requirements with the receiving institution."
+
+==================================================
+DATABASE ARCHITECTURE
+=====================
+
+If the application already has a database, integrate with it.
+
+Create or modify tables logically similar to:
+
+grading_systems
+
+Fields:
+id
+country
+system_name
+qualification
+scale_type
+minimum_value
+maximum_value
+description
+is_active
+
+grade_mappings
+
+Fields:
+id
+grading_system_id
+source_grade
+source_min
+source_max
+target_system
+target_grade
+target_value
+conversion_type
+is_official
+notes
+
+conversion_rules
+
+Fields:
+id
+source_system
+target_system
+formula_type
+formula_config
+description
+is_official
+source_reference
+active
+
+student_transcripts
+
+Fields:
+id
+student_id
+qualification
+country
+academic_year
+created_at
+
+transcript_results
+
+Fields:
+id
+transcript_id
+subject
+subject_code
+original_score
+maximum_score
+original_grade
+normalized_percentage
+credit
+coefficient
+
+Do not duplicate data unnecessarily if equivalent tables already exist.
+
+==================================================
+ADMINISTRATION
+==============
+
+Create/administer configurable grading systems.
+
+Admin should be able to:
+
+* Add country
+* Add education system
+* Add qualification
+* Add grading scale
+* Add grade
+* Add GPA value
+* Add percentage range
+* Add conversion rule
+* Enable/disable conversion
+* Mark conversion as official/reference
+* Add source/reference URL
+* Add explanatory notes
+
+Never hard-code every country permanently into frontend JavaScript.
+
+==================================================
+UI/UX
+=====
+
+The page should be modern, clean and professional.
+
+Use the existing application's design language.
+
+The page should contain:
+
+1. Page header
+2. Short explanation
+3. Source country selector
+4. Education system selector
+5. Qualification selector
+6. Grading scale selector
+7. Student information section
+8. Dynamic subject entry table
+9. Add Subject button
+10. Calculate button
+11. Results dashboard
+12. Country comparison cards
+13. Formula/details section
+14. Disclaimer
+15. Print transcript button
+16. Export PDF button if the existing application already supports PDF
+17. Reset button
+
+Make the interface responsive for:
+
+Desktop
+Tablet
+Mobile
+
+==================================================
+IMPORTANT LOGIC
+===============
+
+If source = Cameroon + Baccalauréat:
+
+Use numeric 0–20 logic.
+
+If source = Cameroon + ordinary school percentage:
+
+Use percentage logic.
+
+If source = Cameroon + GCE A/L:
+
+Use original letter-grade logic.
+
+Do not force GCE A/L grades into a numeric percentage unless an administrator explicitly creates and activates a reference mapping.
+
+==================================================
+TRANSPARENCY
+============
+
+Every converted result should show:
+
+Original:
+16/20
+
+Normalized:
+80%
+
+Target:
+US-style GPA
+
+Result:
+3.0 / 4.0
+
+Method:
+Reference percentage-band conversion
+
+Status:
+NOT OFFICIAL
+
+This transparency is essential.
+
+==================================================
+TEST CASES
+==========
+
+Create automated tests for at least:
+
+1. 20/20
+2. 16/20
+3. 14/20
+4. 12/20
+5. 10/20
+6. 8/20
+7. 95/100
+8. 80/100
+9. 50/100
+10. Cameroon GCE A
+11. Cameroon GCE B
+12. Cameroon GCE C
+13. Cameroon GCE D
+14. Cameroon GCE E
+15. Cameroon GCE O
+16. Cameroon GCE F
+
+Also test:
+
+* Empty score
+* Score above maximum
+* Negative score
+* Invalid grade
+* Missing qualification
+* Missing grading system
+* Missing conversion rule
+* Zero credits
+* Duplicate subjects
+
+==================================================
+NO DATA LOSS
+============
+
+Before modifying anything:
+
+1. Inspect the current application.
+2. Identify existing GPA conversion functionality.
+3. Identify existing database tables.
+4. Identify existing API routes.
+5. Identify existing frontend components.
+6. Reuse existing functionality where possible.
+7. Make a backup/ensure changes are reversible.
+8. Do not delete existing user data.
+9. Do not break authentication.
+10. Do not break existing routes.
+
+==================================================
+FINAL DEVELOPMENT REQUIREMENT
+=============================
+
+After implementation:
+
+* Run the application's existing tests.
+* Run linting if available.
+* Run the build.
+* Fix all build errors.
+* Test the conversion page manually.
+* Test all source grading systems.
+* Test responsive layouts.
+* Confirm existing pages still work.
+* Confirm database migrations work from a clean database.
+* Confirm the app can start from a fresh clone.
+* Do not leave mock data masquerading as real grading rules.
+* Clearly identify any reference mappings that require administrator verification.
+
+Most importantly:
+
+BUILD THIS AS A CONFIGURABLE INTERNATIONAL ACADEMIC GRADING ENGINE, NOT AS A SIMPLE STATIC GPA CALCULATOR.
+
+The original Cameroon qualification/result must always be preserved, and international conversions must be presented as reference calculations unless an institution-specific official conversion rule has been explicitly configured.

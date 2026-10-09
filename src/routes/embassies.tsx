@@ -259,6 +259,51 @@ const DESTINATIONS: Destination[] = DESTINATION_ROWS.map(([code, name, region, u
   route,
 }));
 
+function procedureSteps(countryCode: string): string[] {
+  const shared = [
+    "Secure an admission letter or official pre-registration document before starting the visa file.",
+    "Open the official procedure below and confirm the embassy, consulate or authorised visa centre serving Cameroon.",
+    "Prepare the current checklist: passport, admission, finances, accommodation, insurance, certificates and certified translations where requested.",
+  ];
+  const countrySpecific: Record<string, string[]> = {
+    CA: [
+      "Create an IRCC account, upload the letter of acceptance and provincial attestation where required, then pay the study-permit fees.",
+      "Submit biometrics at the centre named in the IRCC instructions and respond promptly to any medical or additional-document request.",
+    ],
+    DE: [
+      "Book the German national student-visa appointment serving your place of residence in Cameroon and follow the mission's document order.",
+      "Show the required blocked account or accepted financial guarantee, health cover and admission; attend the interview and biometrics.",
+    ],
+    FR: [
+      "Complete Études en France/Campus France when your programme and nationality require it, then create the France-Visas application.",
+      "Submit the printed application and supporting documents to the appointed visa centre after Campus France validation.",
+    ],
+    GB: [
+      "Obtain a Confirmation of Acceptance for Studies (CAS) from the licensed sponsor and check whether ATAS or a TB certificate applies.",
+      "Complete the Student visa form, pay the visa and health surcharge, then attend biometrics at the appointed centre.",
+    ],
+    US: [
+      "Ask the school for the I-20, pay the SEVIS I-901 fee and complete the DS-160 accurately.",
+      "Book the F-1 interview through the official U.S. visa service for Cameroon and bring originals, finances and academic evidence.",
+    ],
+    AU: [
+      "Obtain a Confirmation of Enrolment (CoE), create an ImmiAccount and complete the Student visa (subclass 500) application.",
+      "Upload financial, English, health and character evidence requested by Home Affairs and complete biometrics/medical checks if instructed.",
+    ],
+    IN: [
+      "Confirm the institution's admission letter and check whether the mission requires an appointment or the official e-visa/visa portal.",
+      "Submit the student-visa file with proof of funds, passport, photographs and fee receipt, then follow the mission's collection instructions.",
+    ],
+  };
+  return [
+    ...shared,
+    ...(countrySpecific[countryCode] ?? [
+      "Complete the destination-specific online form, pay only through the official portal and attend the required appointment or biometrics.",
+      "Keep the receipt and track the decision on the same official portal; do not buy a non-refundable ticket before approval.",
+    ]),
+  ];
+}
+
 export const Route = createFileRoute("/embassies")({ component: EmbassiesPage });
 
 function EmbassiesPage() {
@@ -331,20 +376,9 @@ function EmbassiesPage() {
             <h2 className="mt-2 font-display text-2xl font-semibold">{selected.name}</h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{selected.route}</p>
             <ol className="mt-5 list-decimal space-y-2 ps-5 text-sm leading-relaxed text-muted-foreground">
-              <li>Secure admission or the official pre-registration document.</li>
-              <li>
-                Open the official procedure below and identify the embassy, consulate or authorised
-                visa centre serving Cameroon.
-              </li>
-              <li>
-                Prepare the exact checklist, including passport, admission, funds, accommodation,
-                insurance, records and translations where requested.
-              </li>
-              <li>
-                Complete forms, pay only on official portals and attend biometrics/interview as
-                instructed.
-              </li>
-              <li>Keep receipts and do not buy a non-refundable ticket before the decision.</li>
+              {procedureSteps(selected.code).map((step) => (
+                <li key={step}>{step}</li>
+              ))}
             </ol>
             <a
               href={selected.url}
