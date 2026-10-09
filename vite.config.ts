@@ -15,4 +15,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Add your Vite-specific configurations here:
+  vite: {
+    server: {
+      allowedHosts: ["://onrender.com"],
+    },
+  },
 });
